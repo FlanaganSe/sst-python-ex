@@ -30,6 +30,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = [
-    "ruff>=0.12.8",
-]
+dev = ["ruff>=0.12.8"]

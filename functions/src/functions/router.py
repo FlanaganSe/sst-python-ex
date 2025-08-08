@@ -6,6 +6,7 @@ from typing import Any
 from .handlers import (
     handle_echo,
     handle_error,
+    handle_fetch_example,
     handle_health,
     handle_options,
     handle_root,
@@ -22,6 +23,7 @@ ROUTES: dict[tuple[str, str], Callable[[dict[str, Any], Any], dict[str, Any]]] =
     ("GET", "/test-params"): handle_test_params,
     ("GET", "/time"): handle_time,
     ("GET", "/error"): handle_error,
+    ("GET", "/fetch"): handle_fetch_example,  # New httpx example endpoint
     ("OPTIONS", "*"): handle_options,  # Handle all OPTIONS requests
 }
 

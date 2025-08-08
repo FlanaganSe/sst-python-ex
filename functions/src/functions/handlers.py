@@ -3,7 +3,9 @@
 from datetime import datetime
 from typing import Any
 
-from .responses import success_response
+import httpx
+
+from .responses import error_response, success_response
 from .utils import get_context_info, parse_body
 
 
@@ -93,3 +95,33 @@ def handle_options(event: dict[str, Any], context: Any) -> dict[str, Any]:
         },
         "body": "",
     }
+
+
+def handle_fetch_example(event: dict[str, Any], context: Any) -> dict[str, Any]:
+    """Handle GET /fetch - Example of using httpx to make HTTP requests."""
+    try:
+        # Example: Fetch data from a public API
+        url = "https://httpbin.org/json"
+
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(url)
+            response.raise_for_status()
+
+            api_data = response.json()
+
+        return success_response(
+            {
+                "message": "Successfully fetched data using httpx",
+                "external_api_data": api_data,
+                "httpx_version": httpx.__version__,
+                "status_code": response.status_code,
+                "response_time_ms": response.elapsed.total_seconds() * 1000,
+            }
+        )
+
+    except httpx.RequestError as e:
+        return error_response(503, f"Network error: {e}")
+    except httpx.HTTPStatusError as e:
+        return error_response(502, f"HTTP error: {e.response.status_code}")
+    except Exception as e:
+        return error_response(500, f"Unexpected error: {e}")

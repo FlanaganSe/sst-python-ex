@@ -13,13 +13,13 @@
     "lint:python": "ruff check ."
   },
   "dependencies": {
-    "sst": "3.17.10"
+    "sst": "3.17.10",
+    "constructs": "10.3.0"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
     "@types/aws-lambda": "8.10.152",
     "aws-cdk-lib": "2.142.1",
-    "constructs": "10.3.0",
     "typescript": "^5.9.2"
   },
   "workspaces": [

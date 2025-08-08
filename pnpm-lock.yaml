@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      constructs:
+        specifier: 10.3.0
+        version: 10.3.0
       sst:
         specifier: 3.17.10
         version: 3.17.10
@@ -21,9 +24,6 @@ importers:
       aws-cdk-lib:
         specifier: 2.142.1
         version: 2.142.1(constructs@10.3.0)
-      constructs:
-        specifier: 10.3.0
-        version: 10.3.0
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
