@@ -1,139 +1,46 @@
-import json
+"""Main Lambda handler for the API function.
+
+This module serves as the entry point for the Lambda function and dispatches
+requests to appropriate handlers based on HTTP method and path.
+"""
+
 import traceback
 from typing import Any
 
+from .responses import error_response
+from .router import dispatch_request
+from .utils import extract_request_info, log_event
+
 
 def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
-    """Lambda handler with multiple test endpoints for API testing."""
+    """Main Lambda handler that routes requests to appropriate handlers.
 
-    # Log the incoming event
-    print(f"Received event: {json.dumps(event)}")
+    This function is called by AWS Lambda when the function is invoked.
+    It extracts the HTTP method and path from the event and dispatches
+    the request to the appropriate handler.
 
-    # Extract HTTP method and path
-    method = event.get("requestContext", {}).get("http", {}).get("method", "GET")
-    path = event.get("rawPath", "/")
+    Args:
+        event: AWS Lambda event containing request information
+        context: AWS Lambda context object
 
-    # Route handling
+    Returns:
+        HTTP response dictionary with statusCode, headers, and body
+    """
     try:
-        # GET /
-        if method == "GET" and path == "/":
-            return success_response(
-                {
-                    "message": "Hello from Python Lambda!",
-                    "stage": event.get("stageVariables", {}).get("stage", "unknown"),
-                    "path": path,
-                    "method": method,
-                }
-            )
+        # Log the incoming event (with sensitive data masked)
+        log_event(event)
 
-        # GET /health
-        elif method == "GET" and path == "/health":
-            # Safely access context attributes
-            health_data = {
-                "status": "healthy",
-            }
+        # Extract request information
+        request_info = extract_request_info(event)
+        method = request_info["method"]
+        path = request_info["path"]
 
-            # Add context info if available
-            if context:
-                try:
-                    health_data.update(
-                        {
-                            "remaining_time_ms": context.get_remaining_time_in_millis(),
-                            "memory_limit_mb": context.memory_limit_in_mb,
-                            "function_name": context.function_name,
-                            "function_version": context.function_version,
-                            "request_id": context.aws_request_id,
-                        }
-                    )
-                except AttributeError as e:
-                    # If context doesn't have expected attributes, just log it
-                    print(f"Context attributes not available: {e}")
-                    health_data["context_info"] = "limited"
-
-            return success_response(health_data)
-
-        # POST /echo
-        elif method == "POST" and path == "/echo":
-            body = parse_body(event)
-            return success_response(
-                {
-                    "echo": body,
-                    "headers": event.get("headers", {}),
-                }
-            )
-
-        # GET /test-params
-        elif method == "GET" and path == "/test-params":
-            params = event.get("queryStringParameters", {})
-            return success_response(
-                {
-                    "queryParams": params,
-                    "pathParams": event.get("pathParameters", {}),
-                }
-            )
-
-        # GET /time (adding this useful endpoint)
-        elif method == "GET" and path == "/time":
-            from datetime import datetime
-
-            return success_response(
-                {
-                    "current_time": datetime.utcnow().isoformat(),
-                    "timezone": "UTC",
-                    "function_name": getattr(context, "function_name", None) if context else None,
-                }
-            )
-
-        # GET /error (intentional error for testing)
-        elif method == "GET" and path == "/error":
-            raise Exception("Intentional test error")
-
-        # 404 for unknown routes
-        else:
-            return error_response(404, f"Route not found: {method} {path}")
+        # Dispatch to appropriate handler
+        return dispatch_request(method, path, event, context)
 
     except Exception as e:
-        print(f"Error handling request: {traceback.format_exc()}")
-        return error_response(500, str(e))
+        # Log the full traceback for debugging
+        print(f"Unhandled error in Lambda handler: {traceback.format_exc()}")
 
-
-def parse_body(event: dict[str, Any]) -> Any:
-    """Parse request body, handling base64 encoding if necessary."""
-    body = event.get("body")
-    if not body:
-        return None
-
-    is_base64 = event.get("isBase64Encoded", False)
-    if is_base64:
-        import base64
-
-        body = base64.b64decode(body).decode("utf-8")
-
-    try:
-        return json.loads(body)
-    except json.JSONDecodeError:
-        return body
-
-
-def success_response(data: Any) -> dict[str, Any]:
-    """Create a successful response."""
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-        },
-        "body": json.dumps(data, default=str),
-    }
-
-
-def error_response(status_code: int, message: str) -> dict[str, Any]:
-    """Create an error response."""
-    return {
-        "statusCode": status_code,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-        },
-        "body": json.dumps({"error": message}),
-    }
+        # Return a generic error response
+        return error_response(500, f"Internal server error: {e!s}")
