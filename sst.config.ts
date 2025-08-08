@@ -9,7 +9,6 @@ export default $config({
     };
   },
   async run() {
-    // Simple test function with URL
     const api = new sst.aws.Function("ApiFunction", {
       handler: "functions/src/functions/api.handler",
       runtime: "python3.12",
@@ -17,10 +16,22 @@ export default $config({
       environment: {
         STAGE: $app.stage,
       },
+      permissions: [
+        {
+          actions: [
+            "bedrock:Converse",
+            "bedrock:ConverseStream",
+            "bedrock:InvokeModel",
+            "bedrock:InvokeModelWithResponseStream",
+          ],
+          resources: [
+            "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0",
+            "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-pro-v1:0",
+          ],
+        },
+      ],
     });
 
-    return {
-      apiUrl: api.url,
-    };
+    return { apiUrl: api.url };
   },
 });

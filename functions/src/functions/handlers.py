@@ -1,9 +1,12 @@
 """Route handlers for the API Lambda function."""
 
+import os
 from datetime import datetime
 from typing import Any
 
 import httpx
+from strands import Agent
+from strands.models import BedrockModel
 
 from .responses import error_response, success_response
 from .utils import get_context_info, parse_body
@@ -125,3 +128,43 @@ def handle_fetch_example(event: dict[str, Any], context: Any) -> dict[str, Any]:
         return error_response(502, f"HTTP error: {e.response.status_code}")
     except Exception as e:
         return error_response(500, f"Unexpected error: {e}")
+
+
+def handle_strands_query(event: dict[str, Any], context: Any) -> dict[str, Any]:
+    """Handle POST /strands - Use Strands AI to query AWS Nova Lite model."""
+    try:
+        # Parse the request body to get the user query
+        body = parse_body(event)
+
+        if not body or "query" not in body:
+            return error_response(400, "Missing 'query' field in request body")
+
+        user_query = body["query"]
+
+        if not user_query or not isinstance(user_query, str):
+            return error_response(400, "Query must be a non-empty string")
+
+        bedrock_model = BedrockModel(
+            model_id="amazon.nova-lite-v1:0",  # or "amazon.nova-pro-v1:0"
+            region_name=os.environ.get("AWS_REGION", "us-east-1"),
+            # optional knobs:
+            # temperature=0.2, top_p=0.9, streaming=True
+        )
+        agent = Agent(model=bedrock_model)
+
+        # Make the request to the model
+        response = agent(user_query)
+
+        return success_response(
+            {
+                "query": user_query,
+                "response": response,
+                "model": "aws-nova-lite",
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
+
+    except Exception as e:
+        # Log the full error for debugging
+        error_msg = f"Strands AI error: {e!s}"
+        return error_response(500, error_msg)

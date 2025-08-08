@@ -2,12 +2,7 @@
 name = "functions"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = [
-    "core",
-    "httpx",
-    # Add strands when ready:
-    # "strands",
-]
+dependencies = ["core", "httpx", "strands-agents", "strands-agents-tools"]
 
 
 [tool.uv.sources]

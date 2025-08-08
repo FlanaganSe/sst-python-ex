@@ -10,6 +10,7 @@ from .handlers import (
     handle_health,
     handle_options,
     handle_root,
+    handle_strands_query,
     handle_test_params,
     handle_time,
 )
@@ -24,6 +25,7 @@ ROUTES: dict[tuple[str, str], Callable[[dict[str, Any], Any], dict[str, Any]]] =
     ("GET", "/time"): handle_time,
     ("GET", "/error"): handle_error,
     ("GET", "/fetch"): handle_fetch_example,  # New httpx example endpoint
+    ("POST", "/strands"): handle_strands_query,  # New Strands AI endpoint
     ("OPTIONS", "*"): handle_options,  # Handle all OPTIONS requests
 }
 

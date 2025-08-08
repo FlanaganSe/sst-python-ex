@@ -63,7 +63,29 @@ curl $API_URL/test-params?foo=bar  # Query parameter testing
 curl -X POST $API_URL/echo \
   -H "Content-Type: application/json" \
   -d '{"test": "data"}'      # Echo POST body
+
+curl -X POST $API_URL/strands \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is the capital of France?"}' # Strands AI query to AWS Nova Lite
 ```
+
+### 🤖 Strands AI Integration
+
+The `/strands` endpoint integrates with AWS Nova Lite model using the Strands framework:
+
+- **Method**: `POST /strands`
+- **Body**: `{"query": "your question here"}`
+- **Features**:
+  - Uses AWS Nova Lite model for cost-effective AI responses
+  - Leverages Strands agents framework for structured interactions
+  - Built-in error handling and validation
+  - Real-time responses through AWS Lambda
+
+**Prerequisites for Strands endpoint**:
+
+- AWS credentials configured with Bedrock access
+- Nova Lite model access enabled in your AWS region
+- Strands packages installed (`strands-agents`, `strands-agents-tools`)
 
 ## 🧰 Commands
 
