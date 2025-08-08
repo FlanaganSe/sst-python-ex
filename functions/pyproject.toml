@@ -1,0 +1,17 @@
+[project]
+name = "functions"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+    "core",
+    # Add strands when ready:
+    # "strands",
+]
+
+[tool.uv.sources]
+core = { workspace = true }
+sst = { git = "https://github.com/sst/sst.git", subdirectory = "sdk/python", branch = "dev" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

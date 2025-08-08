@@ -1,0 +1,62 @@
+{
+  // Python formatting with Ruff
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.ruff": "explicit",
+    "source.organizeImports.ruff": "explicit"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+
+  // Python interpreter - uv uses .venv by default
+  "python.defaultInterpreterPath": "./.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.languageServer": "Pylance",
+
+  // Testing
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["-v", "functions/tests"],
+
+  // TypeScript for SST config
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // File exclusions
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.mypy_cache": true,
+    ".sst": true,
+    "**/.sst": true,
+    "**/uv.lock": false // Keep visible for dependency tracking
+  },
+
+  // SST specific
+  "files.watcherExclude": {
+    ".sst/**": true,
+    "**/node_modules/**": true,
+    "**/.venv/**": true
+  },
+
+  // Search exclusions
+  "search.exclude": {
+    ".sst": true,
+    "node_modules": true,
+    ".venv": true,
+    "uv.lock": true
+  },
+
+  // Optional but useful
+  "cSpell.enabled": false,
+
+  // uv specific
+  "terminal.integrated.env.linux": {
+    "PATH": "${workspaceFolder}/.venv/bin:${env:PATH}"
+  },
+  "terminal.integrated.env.osx": {
+    "PATH": "${workspaceFolder}/.venv/bin:${env:PATH}"
+  }
+}

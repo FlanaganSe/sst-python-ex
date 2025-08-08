@@ -1,0 +1,31 @@
+version = 1
+revision = 3
+requires-python = "==3.12.*"
+
+[manifest]
+members = [
+    "core",
+    "functions",
+    "my-python-app",
+]
+
+[[package]]
+name = "core"
+version = "0.1.0"
+source = { editable = "core" }
+
+[[package]]
+name = "functions"
+version = "0.1.0"
+source = { editable = "functions" }
+dependencies = [
+    { name = "core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "core", editable = "core" }]
+
+[[package]]
+name = "my-python-app"
+version = "0.1.0"
+source = { editable = "." }
