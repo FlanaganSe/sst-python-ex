@@ -12,7 +12,7 @@ export default $config({
     // Simple test function with URL
     const api = new sst.aws.Function("ApiFunction", {
       handler: "functions/src/functions/api.handler",
-      runtime: "python3.11",
+      runtime: "python3.12",
       url: true,
       environment: {
         STAGE: $app.stage,
