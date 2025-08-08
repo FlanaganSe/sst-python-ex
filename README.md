@@ -1,48 +1,116 @@
-# This is a hackathon project that will attempt to deploy some agents to AWS using the strands SDK, AWS Bedrock, and python AWS CDK.
+# My Python App - SST v3 Serverless Starter
 
-# It is not intended to be a production ready project, but rather a starting point for further development.
+A modern serverless Python application built with [SST v3](https://sst.dev) for AWS Lambda. Features live development, hot reloading, and infrastructure as code.
 
-## Setup
-
-Instructions for setting up the development environment (macOS specific)
+## 🚀 Quick Start
 
 ```bash
-brew install pyenv     # Python runtime
-brew install uv        # Modern version of pip for managing Python packages and environments
-uv python install 3.13 # Install python v3.13
+# Clone and install
+git clone <your-repo-url>
+cd my-python-app
+pnpm install
 
-$ uv add strands-sdk                          # Install dependencies in lock file
-$ uv add --dev pre-commit ruff pyright pytest # Installing dev dependencies
+# Start live development (hot reload + real AWS Lambda)
+pnpm dev
 
-$ uv sync                        # Install dependencies from lock file
-$ source .venv/bin/activate      # Activate virtual env
-
-$ uv run app.py                                                        # Run the app
-$ uv run ruff check .                                                  # Linter
-$ uv run ruff format .                                                 # Prettier/formatter
-$ uv run mypy src                                                      # Equivalent of tsc typecheck
-$ uv run pytest                                                        # Run tests
-$ uv run ruff check . --fix && uv run ruff format . && uv run mypy src # Run everything
+# Your API will be available at:
+# https://xxx.lambda-url.region.on.aws/
 ```
 
-### Structure Structure
+## 📋 What You Get
+
+- **Python 3.12 Lambda** with multiple test endpoints
+- **Live Development** - Changes deploy instantly to real AWS Lambda
+- **Modern Python** - UV package manager, Ruff linting/formatting
+- **TypeScript Infrastructure** - Type-safe AWS resource definitions
+- **Event Bus** - For decoupled service communication
+
+## 🛠️ Prerequisites
 
 ```bash
-my-strands-project/
-├── .vscode/
-├── pyproject.toml
-├── uv.lock
-├── .gitignore
-├── README.md
-├── .env.example
-├── .env
-├── src/
-│   ├── __init__.py
-│   ├── main.py              # entry
-│   ├── config.py            # settings + env vars
-│   ├── models.py            # pydantic models
-│   ├── services.py          # business logic
-│   └── utils.py             # helpers
-└── tests/
-    └── test_main.py         # basic smoke tests
+# macOS/Linux setup
+brew install node          # Node.js 18+ for SST
+brew install uv            # Modern Python package manager
+
+# Configure AWS credentials
+aws configure              # Or export AWS_PROFILE=your-profile
 ```
+
+## 📁 Project Structure
+
+```
+my-python-app/
+├── sst.config.ts          # Infrastructure definition
+├── functions/             # Python Lambda functions
+│   └── src/functions/
+│       └── api.py         # Main API handler
+├── core/                  # Shared Python code
+└── packages/              # TypeScript packages (if needed)
+```
+
+## 🔌 API Endpoints
+
+After running `pnpm dev`, test your endpoints:
+
+```bash
+# Get your API URL from the SST output, then:
+
+curl $API_URL/              # Hello endpoint
+curl $API_URL/health        # Health check with Lambda metrics
+curl $API_URL/time          # Current time
+curl $API_URL/test-params?foo=bar  # Query parameter testing
+
+curl -X POST $API_URL/echo \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'      # Echo POST body
+```
+
+## 🧰 Commands
+
+```bash
+# Development
+pnpm dev                   # Start live development
+pnpm deploy --stage prod   # Deploy to production
+pnpm console               # Open SST management UI
+pnpm remove                # Tear down stack
+
+# Python
+uv sync                    # Install Python dependencies
+uv run ruff check . --fix  # Lint and fix
+uv run ruff format .       # Format code
+```
+
+## 🔧 Adding Dependencies
+
+**Python packages** - Add to `functions/pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    "requests>=2.31.0",
+    "pydantic>=2.8.0",
+]
+```
+
+**Node packages** - For infrastructure code:
+
+```bash
+pnpm add <package-name>
+```
+
+## 💡 Development Tips
+
+1. **Live logs** - Watch your terminal running `pnpm dev` for real-time Lambda logs
+2. **Hot reload** - Save any Python file and changes deploy in ~2 seconds
+3. **Real AWS** - You're testing in actual Lambda, not a simulation
+4. **Debug locally** - Add `print()` statements anywhere, they appear instantly
+
+## 📚 Learn More
+
+- [SST Documentation](https://docs.sst.dev)
+- [SST Python Guide](https://docs.sst.dev/languages/python)
+- [UV Documentation](https://docs.astral.sh/uv/)
+
+## ⚠️ Note
+
+This is a hackathon starter template
