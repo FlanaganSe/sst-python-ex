@@ -4,10 +4,23 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
-    { name = "Sean Flanagan", email = "sean.flanagan@trajectorservices.com" }
+    { name = "Sean Flanagan", email = "sean.flanagan@trajectorservices.com" },
 ]
 requires-python = ">=3.12"
 dependencies = []
+
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF", "ASYNC"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.uv.workspace]
 members = ["functions", "core"]
@@ -15,3 +28,8 @@ members = ["functions", "core"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.8",
+]

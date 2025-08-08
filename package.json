@@ -9,7 +9,8 @@
     "deploy": "sst deploy",
     "dev": "sst dev",
     "remove": "sst remove",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:python": "ruff check ."
   },
   "dependencies": {
     "sst": "3.17.10"
