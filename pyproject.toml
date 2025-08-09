@@ -1,14 +1,93 @@
 [tool.uv.workspace]
-members = ["functions", "core"]
+members = ["functions"]
 
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.4.0",
+    "mypy>=1.10.0", 
+    "pytest>=8.2.0",
+    "pytest-cov>=6.0.0",
+    "bandit>=1.7.10",
+]
+
+[dependency-groups]
+test = ["pytest>=8.2.0", "pytest-cov>=6.0.0"]
+lint = ["ruff>=0.4.0", "mypy>=1.10.0", "bandit>=1.7.10"]
+
+# Tool Configuration
 [tool.ruff]
 line-length = 120
-target-version = "py313"
+target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF", "ASYNC"]
-ignore = ["E501", "B008"]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings  
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "RUF",    # Ruff-specific rules
+    "ASYNC",  # flake8-async
+    "C4",     # flake8-comprehensions
+    "DTZ",    # flake8-datetimez
+    "T20",    # flake8-print
+    "PYI",    # flake8-pyi
+    "PT",     # flake8-pytest-style
+    "Q",      # flake8-quotes
+    "RSE",    # flake8-raise
+    "RET",    # flake8-return
+    "SLOT",   # flake8-slots
+]
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "B008",   # Do not perform function calls in argument defaults
+    "T20",    # Print statements (temporarily allow for serverless debugging)
+    "RET504", # Unnecessary assignment before return
+    "N818",   # Exception names (APIException is fine as base class)
+    "DTZ003", # datetime.utcnow() usage (acceptable for our use case)
+]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["S101", "PLR2004", "SLF001"]
+"**/tests/**/*.py" = ["S101", "PLR2004", "SLF001"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+no_implicit_optional = true
+check_untyped_defs = true
+pretty = true
+
+# Consolidated Pytest Configuration
+[tool.pytest.ini_options]
+testpaths = ["functions/tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = [
+    "--strict-markers",
+    "--strict-config", 
+    "--verbose",
+    "--tb=short",
+    "--durations=10"
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "slow: Slow tests",
+    "aws: Tests requiring AWS services"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]

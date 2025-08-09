@@ -1,2 +1,2 @@
-packages:
-  - "packages/**/*"
+# Simple workspace - no sub-packages needed for this setup
+packages: []

@@ -1,0 +1,47 @@
+# Pre-commit hooks for code quality
+# Install with: pre-commit install
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: debug-statements
+      - id: check-docstring-first
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        files: ^functions/src/
+        additional_dependencies:
+          - pydantic>=2.10.0
+          - types-httpx
+
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: [-r, functions/src/, -f, json]
+        exclude: ^functions/tests/
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run tests
+        entry: bash -c 'cd functions && python -m pytest tests/unit/ -x'
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,29 +1,35 @@
 {
-  "name": "my-python-app",
+  "name": "my-python-app", 
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "sst build",
-    "console": "sst console",
-    "deploy": "sst deploy",
     "dev": "sst dev",
+    "build": "sst build",
+    "deploy": "sst deploy",
     "remove": "sst remove",
+    "console": "sst console",
     "typecheck": "tsc --noEmit",
-    "lint:python": "ruff check ."
+    "py:lint": "uv run ruff check .",
+    "py:format": "uv run ruff format .", 
+    "py:typecheck": "uv run mypy functions/src",
+    "py:test": "cd functions && uv run python -m pytest tests",
+    "py:test-cov": "cd functions && uv run python -m pytest tests --cov=src --cov-report=term-missing",
+    "py:quality": "npm run py:lint && npm run py:format && npm run py:typecheck",
+    "quality": "npm run py:quality",
+    "quality:full": "npm run typecheck && npm run py:quality",
+    "install:all": "pnpm install && uv sync",
+    "clean": "find . -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true; find . -name '*.pyc' -delete 2>/dev/null || true"
   },
   "dependencies": {
-    "sst": "3.17.10",
-    "constructs": "10.3.0"
+    "constructs": "10.3.0",
+    "sst": "3.17.10"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
-    "@types/aws-lambda": "8.10.152",
+    "@types/aws-lambda": "8.10.152", 
     "aws-cdk-lib": "2.142.1",
     "typescript": "^5.9.2"
   },
-  "workspaces": [
-    "packages/*"
-  ],
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
 }

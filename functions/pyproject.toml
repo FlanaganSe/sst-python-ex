@@ -1,12 +1,17 @@
 [project]
 name = "functions"
-version = "0.1.0"
+version = "2.0.0"
+description = "AWS Lambda functions for SST Python application"
 requires-python = ">=3.12"
-dependencies = ["core", "httpx", "strands-agents", "strands-agents-tools"]
-
-
-[tool.uv.sources]
-core = { workspace = true }
+dependencies = [
+    # Core dependencies for MVP
+    "httpx>=0.28.0",
+    "pydantic>=2.10.0", 
+    "strands-agents>=0.1.0",
+    # AWS dependencies
+    "boto3>=1.35.0",
+    "aws-lambda-powertools[tracer,logger]>=3.3.0",
+]
 
 [build-system]
 requires = ["hatchling"]

@@ -1,138 +1,139 @@
-# My Python App - SST v3 Serverless Starter
+# SST Python AI API
 
-A modern serverless Python application built with [SST v3](https://sst.dev) for AWS Lambda. Features live development, hot reloading, and infrastructure as code.
+Modern, minimal serverless Python API on AWS using SST v3 and Bedrock Nova models. Built as an MVP to explore Strands Agents and test AI use cases quickly and safely.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Clone and install
-git clone <your-repo-url>
-cd my-python-app
-pnpm install
+# 1) Install tooling
+brew install node                                 # Node.js
+curl -LsSf https://astral.sh/uv/install.sh | sh   # UV for Python
 
-# Start live development (hot reload + real AWS Lambda)
+# 2) Install deps (Node + Python)
+pnpm install:all
+
+# 3) Start live dev (hot reload to real Lambda)
 pnpm dev
-
-# Your API will be available at:
-# https://xxx.lambda-url.region.on.aws/
+# API URL appears in the terminal as apiUrl
 ```
 
-## 📋 What You Get
+## What’s Inside
 
-- **Python 3.12 Lambda** with multiple test endpoints
-- **Live Development** - Changes deploy instantly to real AWS Lambda
-- **Modern Python** - UV package manager, Ruff linting/formatting
-- **TypeScript Infrastructure** - Type-safe AWS resource definitions
-- **Event Bus** - For decoupled service communication
+- Python 3.12 Lambda (ARM64) with a single, type-safe handler
+- Strands Agents + AWS Bedrock Nova integration (Nova Lite by default)
+- UV-managed Python workspace, Ruff + mypy + pytest
+- SST v3 dev loop with logs, tracing, and stage-aware config
 
-## 🛠️ Prerequisites
+## Project Structure
+
+```
+sst-python-ex/
+├── sst.config.ts            # SST v3 infrastructure
+├── package.json             # Unified scripts (Node + Python)
+├── pyproject.toml           # UV workspace + tooling config
+├── functions/
+│   ├── pyproject.toml       # Python deps (Lambda)
+│   ├── src/functions/
+│   │   ├── handler.py       # All routes + logic
+│   │   └── config.py        # Env configuration
+│   └── tests/               # Unit + integration tests
+```
+
+## Configuration
+
+- `STAGE`: deploy stage (dev, staging, production). Set by SST.
+- `AWS_REGION`: AWS region (default `us-east-1`).
+- `BEDROCK_MODEL_ID`: Bedrock model (default `amazon.nova-lite-v1:0`).
+- `AI_TIMEOUT`: AI request timeout seconds (default `30`).
+- Powertools logging env set in `sst.config.ts`.
+
+Notes
+- Dev CORS is open (`*`). Production can restrict origins.
+- Bedrock access must be enabled in your account/region (Nova models).
+
+## Endpoints
 
 ```bash
-# macOS/Linux setup
-brew install node          # Node.js 18+ for SST
-brew install uv            # Modern Python package manager
+# Basic
+curl "$API_URL/"                 # Welcome
+curl "$API_URL/health"           # Health (Lambda context)
+curl "$API_URL/time"             # UTC timestamp
+curl "$API_URL/fetch"            # External httpx demo
 
-# Configure AWS credentials
-aws configure              # Or export AWS_PROFILE=your-profile
-```
-
-## 📁 Project Structure
-
-```
-my-python-app/
-├── sst.config.ts          # Infrastructure definition
-├── functions/             # Python Lambda functions
-│   └── src/functions/
-│       └── api.py         # Main API handler
-├── core/                  # Shared Python code
-└── packages/              # TypeScript packages (if needed)
-```
-
-## 🔌 API Endpoints
-
-After running `pnpm dev`, test your endpoints:
-
-```bash
-# Get your API URL from the SST output, then:
-
-curl $API_URL/              # Hello endpoint
-curl $API_URL/health        # Health check with Lambda metrics
-curl $API_URL/time          # Current time
-curl $API_URL/test-params?foo=bar  # Query parameter testing
-
-curl -X POST $API_URL/echo \
+# Echo
+curl -X POST "$API_URL/echo" \
   -H "Content-Type: application/json" \
-  -d '{"test": "data"}'      # Echo POST body
+  -d '{"message": "Hello", "metadata": {"test": true}}'
 
-curl -X POST $API_URL/strands \
+# AI (Strands + Bedrock)
+curl -X POST "$API_URL/strands" \
   -H "Content-Type: application/json" \
-  -d '{"query": "What is the capital of France?"}' # Strands AI query to AWS Nova Lite
+  -d '{"query": "Explain quantum computing simply"}'
+
+# Error test
+curl "$API_URL/error"
 ```
 
-### 🤖 Strands AI Integration
+Response Shape
+- All responses use `{ success, timestamp, data?, error? }`.
+- Errors return proper HTTP codes and a message in `error`.
 
-The `/strands` endpoint integrates with AWS Nova Lite model using the Strands framework:
+## Strands + Bedrock
 
-- **Method**: `POST /strands`
-- **Body**: `{"query": "your question here"}`
-- **Features**:
-  - Uses AWS Nova Lite model for cost-effective AI responses
-  - Leverages Strands agents framework for structured interactions
-  - Built-in error handling and validation
-  - Real-time responses through AWS Lambda
+- Uses `strands` Agent + `BedrockModel` with Nova Lite.
+- Change model via `BEDROCK_MODEL_ID` or in code.
+- Required permissions (granted in `sst.config.ts`):
+  - `bedrock:Converse`, `bedrock:InvokeModel`, `bedrock:InvokeModelWithResponseStream` for Nova models.
 
-**Prerequisites for Strands endpoint**:
+Request Body (AI)
+```json
+{ "query": "Your prompt", "metadata": { "optional": "context" } }
+```
 
-- AWS credentials configured with Bedrock access
-- Nova Lite model access enabled in your AWS region
-- Strands packages installed (`strands-agents`, `strands-agents-tools`)
+## Scripts
 
-## 🧰 Commands
+- Dev and deploy: `pnpm dev`, `pnpm build`, `pnpm deploy`, `pnpm remove`
+- Python quality: `pnpm py:lint`, `pnpm py:format`, `pnpm py:typecheck`, `pnpm quality`
+- Tests: `pnpm py:test`, `pnpm py:test-cov`, `pnpm clean`
+- UV direct: `uv sync`, `uv run ruff check .`, `uv run mypy functions/src`
+
+## Testing
+
+- Unit tests cover pure handlers and utilities.
+- Integration tests exercise the full Lambda entrypoint.
+- Run: `pnpm py:test` (coverage: `pnpm py:test-cov`).
+
+## Add Features
+
+- New endpoint
+  - Add a function in `functions/src/functions/handler.py`
+  - Register it in the `ROUTES` dict
+  - Add tests under `functions/tests`
+
+- New Python dependency
+  - Add to `functions/pyproject.toml` → `[project].dependencies`
+  - `uv sync`
+
+- Infra changes
+  - Edit `sst.config.ts` (env, permissions, memory/timeout, CORS)
+
+## Deploy
 
 ```bash
-# Development
-pnpm dev                   # Start live development
-pnpm deploy --stage prod   # Deploy to production
-pnpm console               # Open SST management UI
-pnpm remove                # Tear down stack
-
-# Python
-uv sync                    # Install Python dependencies
-uv run ruff check . --fix  # Lint and fix
-uv run ruff format .       # Format code
+pnpm deploy                  # deploy current stage (default dev)
+pnpm deploy --stage staging  # deploy a different stage
+pnpm remove --stage dev      # remove a stage stack
 ```
 
-## 🔧 Adding Dependencies
+Outputs include the public function URL (`apiUrl`).
 
-**Python packages** - Add to `functions/pyproject.toml`:
+## Troubleshooting
 
-```toml
-[project]
-dependencies = [
-    "requests>=2.31.0",
-    "pydantic>=2.8.0",
-]
-```
+- Bedrock access denied: verify model access in your AWS account and region.
+- CORS errors in browser: confirm allowed origins in `sst.config.ts`.
+- Import errors locally: run `pnpm install:all` then `uv sync`.
+- Timeouts: raise function `timeout` or lower model latency/change model.
 
-**Node packages** - For infrastructure code:
+## Roadmap Ideas
 
-```bash
-pnpm add <package-name>
-```
-
-## 💡 Development Tips
-
-1. **Live logs** - Watch your terminal running `pnpm dev` for real-time Lambda logs
-2. **Hot reload** - Save any Python file and changes deploy in ~2 seconds
-3. **Real AWS** - You're testing in actual Lambda, not a simulation
-4. **Debug locally** - Add `print()` statements anywhere, they appear instantly
-
-## 📚 Learn More
-
-- [SST Documentation](https://docs.sst.dev)
-- [SST Python Guide](https://docs.sst.dev/languages/python)
-- [UV Documentation](https://docs.astral.sh/uv/)
-
-## ⚠️ Note
-
-This is a hackathon starter template
+- Additional agent configs and tools, auth, DynamoDB persistence, dashboards.
