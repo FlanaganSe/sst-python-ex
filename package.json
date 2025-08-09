@@ -1,29 +1,32 @@
 {
-  "name": "my-python-app",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "sst build",
-    "console": "sst console",
-    "deploy": "sst deploy",
-    "dev": "sst dev",
-    "remove": "sst remove",
-    "typecheck": "tsc --noEmit",
-    "lint:python": "ruff check ."
-  },
-  "dependencies": {
-    "sst": "3.17.10",
-    "constructs": "10.3.0"
-  },
-  "devDependencies": {
-    "@tsconfig/node18": "^18.2.4",
-    "@types/aws-lambda": "8.10.152",
-    "aws-cdk-lib": "2.142.1",
-    "typescript": "^5.9.2"
-  },
-  "workspaces": [
-    "packages/*"
-  ],
-  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
+	"name": "sst-python-ai-api",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "sst dev",
+		"aws:dev": "sst dev",
+		"aws:deploy": "sst deploy",
+		"aws:remove": "sst remove",
+
+		"lint": "biome check . && cd functions && uv run ruff check src",
+		"format": "biome check --write . && cd functions && uv run ruff check src --fix && uv run ruff format .",
+		"typecheck": "tsc --noEmit && cd functions && uv run mypy src",
+		"test": "cd functions && uv run pytest tests/unit",
+		"test:all": "cd functions && uv run pytest tests",
+		"test:cov": "cd functions && uv run pytest tests --cov=src --cov-report=term-missing",
+
+		"quality": "pnpm lint && pnpm typecheck && pnpm test",
+		"setup": "pnpm install && uv sync && uv run pre-commit install",
+		"clean": "find . -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true"
+		},
+	"dependencies": {
+		"constructs": "10.4.2",
+		"sst": "3.17.10"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.1.4",
+		"typescript": "^5.9.2"
+	},
+	"packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
 }
