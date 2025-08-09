@@ -9,12 +9,14 @@
     "noImplicitReturns": true,
 
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "noResolve": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
 
     "noEmit": true
   },
-  "include": ["sst.config.ts", "sst-env.d.ts"],
+  "include": ["sst.config.ts", "sst-env.d.ts", "types/ci-sst-globals.d.ts"],
   "exclude": ["node_modules", ".sst"]
 }

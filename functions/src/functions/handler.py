@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, ValidationError
 from strands import Agent
 from strands.models import BedrockModel
 
-from .config import BEDROCK_MODEL, FUNCTION_NAME, REGION, REQUEST_TIMEOUT, STAGE
+from functions.config import BEDROCK_MODEL, FUNCTION_NAME, REGION, REQUEST_TIMEOUT, STAGE
 
 # Initialize AWS services
 tracer = Tracer()
@@ -46,6 +46,9 @@ class APIResponse(BaseModel):
     error: str | None = None
 
 
+# Constants
+HTTP_SUCCESS_THRESHOLD = 400
+
 # CORS headers
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -57,7 +60,7 @@ CORS_HEADERS = {
 
 def make_response(status: int, data: Any = None, error: str | None = None) -> dict[str, Any]:
     """Create standardized HTTP response."""
-    response_data = APIResponse(success=status < 400, data=data or {}, error=error)
+    response_data = APIResponse(success=status < HTTP_SUCCESS_THRESHOLD, data=data or {}, error=error)
 
     return {"statusCode": status, "headers": CORS_HEADERS, "body": response_data.model_dump_json()}
 
@@ -171,10 +174,14 @@ def handle_ai_query(request_data: dict[str, Any]) -> dict[str, Any]:
         return make_response(502, error=f"AI service error: {e!s}")
 
 
+class TestError(Exception):
+    """Custom exception for testing purposes."""
+
+
 def handle_error() -> dict[str, Any]:
     """GET /error - Test error handling."""
     logger.warning("Intentional test error")
-    raise Exception("Test error for monitoring")
+    raise TestError("Test error for monitoring")
 
 
 def handle_options() -> dict[str, Any]:
@@ -184,14 +191,14 @@ def handle_options() -> dict[str, Any]:
 
 # Route mapping
 ROUTES: dict[tuple[str, str], RouteHandler] = {
-    ("GET", "/"): lambda e, c: handle_root(),
-    ("GET", "/health"): lambda e, c: handle_health(c),
-    ("POST", "/echo"): lambda e, c: handle_echo(parse_request(e)),
-    ("GET", "/time"): lambda e, c: handle_time(),
-    ("GET", "/fetch"): lambda e, c: handle_fetch(),
-    ("POST", "/strands"): lambda e, c: handle_ai_query(parse_request(e)),
-    ("GET", "/error"): lambda e, c: handle_error(),
-    ("OPTIONS", "*"): lambda e, c: handle_options(),
+    ("GET", "/"): lambda _e, _c: handle_root(),
+    ("GET", "/health"): lambda _e, c: handle_health(c),
+    ("POST", "/echo"): lambda e, _c: handle_echo(parse_request(e)),
+    ("GET", "/time"): lambda _e, _c: handle_time(),
+    ("GET", "/fetch"): lambda _e, _c: handle_fetch(),
+    ("POST", "/strands"): lambda e, _c: handle_ai_query(parse_request(e)),
+    ("GET", "/error"): lambda _e, _c: handle_error(),
+    ("OPTIONS", "*"): lambda _e, _c: handle_options(),
 }
 
 

@@ -1,111 +1,89 @@
 # SST Python AI API — Agent Guide
 
-Pragmatic notes for coding agents working in this repo. Keep it simple, precise, and stage-safe.
+Concise guide for AI agents working in this repo. Keep edits minimal, follow existing patterns, and ensure tests pass.
 
-## Context
+## Essentials
 
-- Purpose: MVP/hackathon API to exercise Strands Agents on AWS Bedrock (Nova) via a single Python Lambda.
-- Entry point: `functions/src/functions/handler.py:handler` (all routes in one file).
-- Infra: `sst.config.ts` provisions one `sst.aws.Function` with a public URL and Bedrock permissions.
+- Entry point: `functions/src/functions/handler.py:handler`
+- Infra: `sst.config.ts` (Function URL, CORS, env, perms)
+- Tests: `functions/tests/{unit,integration}`
 
 ## Stack
 
-- Runtime: Python 3.12 (ARM64) on Lambda
-- AI: `strands` Agent + `BedrockModel` (Nova Lite default)
-- HTTP: `httpx`
-- Types/validation: `pydantic` v2
-- Observability: AWS Lambda Powertools (logger, tracer)
+- Python 3.12 (ARM64) Lambda
+- Strands `Agent` + `BedrockModel` (Nova Lite)
+- httpx, pydantic v2, AWS Lambda Powertools
 - Tooling: UV, Ruff, mypy, pytest
 
-## Key Paths
-
-- Handler: `functions/src/functions/handler.py`
-- Config: `functions/src/functions/config.py`
-- Tests: `functions/tests/{unit,integration}`
-- Infra: `sst.config.ts`
-
-## Routes (in handler.py)
+## Routes
 
 ```
-("GET", "/") → handle_root()
-("GET", "/health") → handle_health(context)
-("POST", "/echo") → handle_echo(parse_request(event))
-("GET", "/time") → handle_time()
-("GET", "/fetch") → handle_fetch()
-("POST", "/strands") → handle_ai_query(parse_request(event))
-("GET", "/error") → handle_error()
-("OPTIONS", "*") → handle_options()
+(GET, "/")        → handle_root()
+(GET, "/health")   → handle_health(context)
+(POST, "/echo")    → handle_echo(parse_request(event))
+(GET, "/time")     → handle_time()
+(GET, "/fetch")    → handle_fetch()
+(POST, "/strands") → handle_ai_query(parse_request(event))
+(GET, "/error")    → handle_error()
+(OPTIONS, "*")      → handle_options()
 ```
 
 ## Response Contract
 
-- Standard envelope: `{ success: bool, timestamp: str, data?: {}, error?: str }`.
-- `make_response(status, data?, error?)` sets CORS and JSON body consistently.
+- Envelope: `{ success: bool, timestamp: str, data?: {}, error?: str }`
+- Use `make_response(status, data?, error?)` for CORS + JSON
 
-## Env Vars (config.py)
+## Configuration (config.py)
 
-- `STAGE` (default `dev`), `AWS_REGION` (default `us-east-1`)
-- `AWS_LAMBDA_FUNCTION_NAME` (set by Lambda)
-- `BEDROCK_MODEL_ID` (default `amazon.nova-lite-v1:0`)
-- `AI_TIMEOUT` (default `30` seconds)
-- HTTP client timeout: `REQUEST_TIMEOUT = 10` (code-level)
+- `STAGE` default `dev`; `AWS_REGION` default `us-east-1`
+- `AWS_LAMBDA_FUNCTION_NAME` set by Lambda
+- `BEDROCK_MODEL_ID` default `amazon.nova-lite-v1:0`
+- `AI_TIMEOUT` default `30`; `REQUEST_TIMEOUT` is `10` seconds in code
 
 ## Bedrock Permissions
 
-- Granted in `sst.config.ts`: `bedrock:Converse`, `bedrock:InvokeModel`, `bedrock:InvokeModelWithResponseStream` for Nova.
-- Change model by updating `BEDROCK_MODEL_ID` or code.
+- Granted in `sst.config.ts`:
+  `bedrock:Converse`, `bedrock:InvokeModel`, `bedrock:InvokeModelWithResponseStream`
+- Change model via `BEDROCK_MODEL_ID` or in code
 
-## Development Commands
+## Commands
 
-- Setup: `pnpm setup` (Node deps + `uv sync` + pre-commit)
-- Live dev: `pnpm dev` (hot reload to real Lambda, logs shown)
-- Deploy/Remove: `pnpm aws:deploy` / `pnpm aws:remove` (use `--stage` as needed)
-- Tests: `pnpm test` (unit) • `pnpm test:all` (all) • coverage: `pnpm test:cov`
-- Quality: `pnpm lint`, `pnpm format`, `pnpm typecheck`, or `pnpm quality`
+- Setup: `pnpm setup`
+- Dev: `pnpm dev`
+- Deploy/Remove: `pnpm aws:deploy` / `pnpm aws:remove`
+- Tests: `pnpm test`, `pnpm test:all`, `pnpm test:cov`
+- Quality: `pnpm quality` (lint + typecheck + unit tests)
 
-## Testing Notes
+## Testing
 
-- Unit tests focus on pure handlers/utilities.
-- Integration tests exercise `handler(event, context)` end-to-end.
-- Mock patterns:
-  - `@patch("src.functions.handler.httpx.Client")` for external HTTP
-  - `@patch("src.functions.handler.Agent")` for AI calls
-- Fixtures: see `functions/tests/conftest.py` (`mock_lambda_context`, events).
+- Unit: test pure handlers/utilities
+- Integration: call `handler(event, context)` end-to-end
+- Mocks:
+  - External HTTP: `@patch("src.functions.handler.httpx.Client")`
+  - AI calls: `@patch("src.functions.handler.Agent")`
+- Fixtures: `functions/tests/conftest.py` (events, `mock_lambda_context`)
 
-## Adding Endpoints
+## Modifying Endpoints
 
-- Add a function to `handler.py` and wire it in `ROUTES`.
-- Parse JSON with `parse_request(event)` for POST routes.
-- Return via `make_response` to ensure envelope + CORS.
-- Add tests under `functions/tests` (unit + integration where useful).
+- Add function in `handler.py` and register in `ROUTES`
+- For POST, parse with `parse_request(event)`
+- Always return `make_response(...)`
+- Add/adjust tests under `functions/tests`
 
-## Adding Dependencies
+## Dependencies
 
-- Python: edit `functions/pyproject.toml` → `[project].dependencies`, then `uv sync`.
-- Infra/Node: edit `package.json` if you need new SST/CDK libs.
-
-## Infra Edits
-
-- `sst.config.ts` controls: timeout, memory, CORS, env, permissions.
-- Dev CORS is `*`; production can restrict origins via `allowOrigins`.
-- Outputs: function URL (`api.url`), function name.
+- Python: edit `functions/pyproject.toml` → `uv sync`
+- Node (infra): edit `package.json` / `sst.config.ts`
 
 ## AI Call Shape
 
-- Request body: `{ "query": str, "metadata"?: {} }`.
-- Handler constructs `Agent(BedrockModel(...))` and calls `agent(query)`.
-- Errors: validation → 400; AI/service issues → 502; unhandled → 500.
+- Request: `{ "query": str, "metadata"?: {} }`
+- Handler: `Agent(BedrockModel(...))(query)`
+- Errors: validation → 400; AI/service → 502; unhandled → 500
 
-## Style & Safety
+## Gotchas
 
-- Keep changes narrow; follow existing patterns and names.
-- Run `pnpm quality` before handing off.
-- Prefer Pydantic models and small helpers; avoid over-structuring.
-- Don’t introduce networked tests; mock external calls.
-
-## Common Gotchas
-
-- Bedrock access must be enabled in the target region/account.
-- Ensure `uv sync` after changing Python deps.
-- Response must be JSON-serializable; use `model_dump_json()` as done.
-- Remember OPTIONS path (`*`) for CORS preflight.
+- Bedrock Nova access must be enabled in the target AWS account/region
+- Ensure `uv sync` after changing Python deps
+- Responses must be JSON-serializable; use `model_dump_json()` via `APIResponse`
+- Keep `OPTIONS *` route for CORS preflight

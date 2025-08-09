@@ -11,7 +11,7 @@
 
 		"lint": "biome check . && cd functions && uv run ruff check src",
 		"format": "biome check --write . && cd functions && uv run ruff check src --fix && uv run ruff format .",
-		"typecheck": "tsc --noEmit && cd functions && uv run mypy src",
+		"typecheck": "tsc --noEmit -p tsconfig.json && cd functions && uv run mypy src",
 		"test": "cd functions && uv run pytest tests/unit",
 		"test:all": "cd functions && uv run pytest tests",
 		"test:cov": "cd functions && uv run pytest tests --cov=src --cov-report=term-missing",
